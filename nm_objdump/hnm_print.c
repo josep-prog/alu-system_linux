@@ -79,6 +79,6 @@ void print_symbol(const elf_t *elf, const sym_t *sym, const char *name,
 	if (sym->st_shndx == SHN_UNDEF_V)
 		printf("%*s %c %s\n", width, "", letter, full);
 	else
-		printf("%0*llx %c %s\n", width,
-		       (unsigned long long)sym->st_value, letter, full);
+		printf("%0*lx %c %s\n", width,
+		       (unsigned long)sym->st_value, letter, full);
 }
