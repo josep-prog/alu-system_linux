@@ -91,5 +91,6 @@ int elf_load(const char *filename, elf_t *elf);
 void elf_free(elf_t *elf);
 const char *elf_shstr(const elf_t *elf, uint32_t name_off);
 int elf_find_section(const elf_t *elf, const char *name);
+int elf_find_section_by_type(const elf_t *elf, uint32_t type);
 
 #endif /* ELF_COMMON_H */

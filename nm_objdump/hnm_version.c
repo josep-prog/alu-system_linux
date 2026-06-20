@@ -78,6 +78,58 @@ static const char *resolve_verdef(const elf_t *elf, int verdef_idx,
 }
 
 /**
+ * fill_version_map - resolve the version string of every versioned dynamic
+ * symbol and store the matching (name, version) pairs in *out
+ * @elf: parsed ELF file
+ * @dynsym_idx: section index of .dynsym
+ * @vsec: section indexes {versym, verneed, verdef} (-1 if absent)
+ * @out: set to a malloc'd array of entries (NULL if none)
+ *
+ * Return: number of entries in *out
+ */
+static size_t fill_version_map(const elf_t *elf, int dynsym_idx,
+				const int vsec[3], ver_entry_t **out)
+{
+	sym_t *dynsyms;
+	size_t count, used = 0, i;
+	uint16_t target;
+	const char *dynstr_base, *version;
+
+	dynsyms = read_symtab(elf, dynsym_idx, &count);
+	if (!dynsyms)
+		return (0);
+	dynstr_base = (const char *)(elf->data +
+		elf->sections[elf->sections[dynsym_idx].sh_link].sh_offset);
+	*out = malloc(sizeof(ver_entry_t) * count);
+	if (!*out)
+	{
+		free(dynsyms);
+		return (0);
+	}
+
+	for (i = 1; i < count; i++)
+	{
+		target = (uint16_t)elf_read(elf->data +
+			elf->sections[vsec[0]].sh_offset + i * 2, 2,
+			elf->is_big_endian) & VERSYM_VERSION_MASK;
+		if (target < 2)
+			continue;
+		version = NULL;
+		if (dynsyms[i].st_shndx == SHN_UNDEF_V && vsec[1] != -1)
+			version = resolve_verneed(elf, vsec[1], target);
+		else if (dynsyms[i].st_shndx != SHN_UNDEF_V && vsec[2] != -1)
+			version = resolve_verdef(elf, vsec[2], target);
+		if (!version)
+			continue;
+		(*out)[used].name = dynstr_base + dynsyms[i].st_name;
+		(*out)[used].version = version;
+		used++;
+	}
+	free(dynsyms);
+	return (used);
+}
+
+/**
  * build_version_map - associate each versioned dynamic symbol with its
  * required or defined version string, as GNU nm does for the "@@" suffix
  * @elf: parsed ELF file
@@ -88,65 +140,19 @@ static const char *resolve_verdef(const elf_t *elf, int verdef_idx,
 size_t build_version_map(const elf_t *elf, ver_entry_t **out)
 {
 	int dynsym_idx = elf_find_section(elf, ".dynsym");
-	int versym_idx = -1, verneed_idx = -1, verdef_idx = -1;
-	sym_t *dynsyms;
-	size_t count, used = 0, i;
-	uint16_t versym, target;
-	const char *dynstr_base, *version;
-	uint16_t s;
+	int vsec[3];
 
 	*out = NULL;
 	if (dynsym_idx == -1)
 		return (0);
 
-	for (s = 0; s < elf->e_shnum; s++)
-	{
-		if (elf->sections[s].sh_type == SHT_GNU_VERSYM_V)
-			versym_idx = s;
-		else if (elf->sections[s].sh_type == SHT_GNU_VERNEED_V)
-			verneed_idx = s;
-		else if (elf->sections[s].sh_type == SHT_GNU_VERDEF_V)
-			verdef_idx = s;
-	}
-	if (versym_idx == -1 || (verneed_idx == -1 && verdef_idx == -1))
+	vsec[0] = elf_find_section_by_type(elf, SHT_GNU_VERSYM_V);
+	vsec[1] = elf_find_section_by_type(elf, SHT_GNU_VERNEED_V);
+	vsec[2] = elf_find_section_by_type(elf, SHT_GNU_VERDEF_V);
+	if (vsec[0] == -1 || (vsec[1] == -1 && vsec[2] == -1))
 		return (0);
 
-	dynsyms = read_symtab(elf, dynsym_idx, &count);
-	if (!dynsyms)
-		return (0);
-	dynstr_base = (const char *)(elf->data +
-		elf->sections[elf->sections[dynsym_idx].sh_link].sh_offset);
-
-	*out = malloc(sizeof(ver_entry_t) * count);
-	if (!*out)
-	{
-		free(dynsyms);
-		return (0);
-	}
-
-	for (i = 1; i < count; i++)
-	{
-		versym = (uint16_t)elf_read(elf->data +
-			elf->sections[versym_idx].sh_offset + i * 2, 2,
-			elf->is_big_endian);
-		target = versym & VERSYM_VERSION_MASK;
-		if (target < 2)
-			continue;
-
-		version = NULL;
-		if (dynsyms[i].st_shndx == SHN_UNDEF_V && verneed_idx != -1)
-			version = resolve_verneed(elf, verneed_idx, target);
-		else if (dynsyms[i].st_shndx != SHN_UNDEF_V && verdef_idx != -1)
-			version = resolve_verdef(elf, verdef_idx, target);
-		if (!version)
-			continue;
-
-		(*out)[used].name = dynstr_base + dynsyms[i].st_name;
-		(*out)[used].version = version;
-		used++;
-	}
-	free(dynsyms);
-	return (used);
+	return (fill_version_map(elf, dynsym_idx, vsec, out));
 }
 
 /**

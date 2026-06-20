@@ -69,3 +69,20 @@ int elf_find_section(const elf_t *elf, const char *name)
 			return (i);
 	return (-1);
 }
+
+/**
+ * elf_find_section_by_type - locate the first section of a given sh_type
+ * @elf: parsed ELF file
+ * @type: section type to search for
+ *
+ * Return: section index, or -1 if not found
+ */
+int elf_find_section_by_type(const elf_t *elf, uint32_t type)
+{
+	uint16_t i;
+
+	for (i = 0; i < elf->e_shnum; i++)
+		if (elf->sections[i].sh_type == type)
+			return (i);
+	return (-1);
+}

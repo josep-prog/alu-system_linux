@@ -47,6 +47,42 @@ static int parse_ehdr(elf_t *elf)
 }
 
 /**
+ * fill_shdr - fill one generic section header from its raw bytes
+ * @elf: target structure, with is64/is_big_endian already set
+ * @base: pointer to the raw section header entry
+ * @s: generic section header to fill
+ */
+static void fill_shdr(const elf_t *elf, unsigned char *base, sect_t *s)
+{
+	int be = elf->is_big_endian;
+
+	s->sh_name = (uint32_t)elf_read(base, 4, be);
+	s->sh_type = (uint32_t)elf_read(base + 4, 4, be);
+	if (elf->is64)
+	{
+		s->sh_flags = elf_read(base + 8, 8, be);
+		s->sh_addr = elf_read(base + 16, 8, be);
+		s->sh_offset = elf_read(base + 24, 8, be);
+		s->sh_size = elf_read(base + 32, 8, be);
+		s->sh_link = (uint32_t)elf_read(base + 40, 4, be);
+		s->sh_info = (uint32_t)elf_read(base + 44, 4, be);
+		s->sh_addralign = elf_read(base + 48, 8, be);
+		s->sh_entsize = elf_read(base + 56, 8, be);
+	}
+	else
+	{
+		s->sh_flags = elf_read(base + 8, 4, be);
+		s->sh_addr = elf_read(base + 12, 4, be);
+		s->sh_offset = elf_read(base + 16, 4, be);
+		s->sh_size = elf_read(base + 20, 4, be);
+		s->sh_link = (uint32_t)elf_read(base + 24, 4, be);
+		s->sh_info = (uint32_t)elf_read(base + 28, 4, be);
+		s->sh_addralign = elf_read(base + 32, 4, be);
+		s->sh_entsize = elf_read(base + 36, 4, be);
+	}
+}
+
+/**
  * parse_shdrs - allocate and fill the generic section header array
  * @elf: target structure with the header already parsed
  *
@@ -55,9 +91,6 @@ static int parse_ehdr(elf_t *elf)
 static int parse_shdrs(elf_t *elf)
 {
 	size_t entsize = elf->is64 ? 64 : 40;
-	int be = elf->is_big_endian;
-	unsigned char *base;
-	sect_t *s;
 	uint16_t i;
 
 	elf->sections = NULL;
@@ -71,52 +104,23 @@ static int parse_shdrs(elf_t *elf)
 		return (0);
 
 	for (i = 0; i < elf->e_shnum; i++)
-	{
-		base = elf->data + elf->e_shoff + (size_t)i * entsize;
-		s = &elf->sections[i];
-		s->sh_name = (uint32_t)elf_read(base, 4, be);
-		s->sh_type = (uint32_t)elf_read(base + 4, 4, be);
-		if (elf->is64)
-		{
-			s->sh_flags = elf_read(base + 8, 8, be);
-			s->sh_addr = elf_read(base + 16, 8, be);
-			s->sh_offset = elf_read(base + 24, 8, be);
-			s->sh_size = elf_read(base + 32, 8, be);
-			s->sh_link = (uint32_t)elf_read(base + 40, 4, be);
-			s->sh_info = (uint32_t)elf_read(base + 44, 4, be);
-			s->sh_addralign = elf_read(base + 48, 8, be);
-			s->sh_entsize = elf_read(base + 56, 8, be);
-		}
-		else
-		{
-			s->sh_flags = elf_read(base + 8, 4, be);
-			s->sh_addr = elf_read(base + 12, 4, be);
-			s->sh_offset = elf_read(base + 16, 4, be);
-			s->sh_size = elf_read(base + 20, 4, be);
-			s->sh_link = (uint32_t)elf_read(base + 24, 4, be);
-			s->sh_info = (uint32_t)elf_read(base + 28, 4, be);
-			s->sh_addralign = elf_read(base + 32, 4, be);
-			s->sh_entsize = elf_read(base + 36, 4, be);
-		}
-	}
+		fill_shdr(elf, elf->data + elf->e_shoff + (size_t)i * entsize,
+			  &elf->sections[i]);
 	return (1);
 }
 
 /**
- * elf_load - read a file from disk and parse it as an ELF object
- * @filename: path of the file to load
- * @elf: structure to fill in
+ * read_file - read the whole content of a file into elf->data
+ * @filename: path of the file to read
+ * @elf: structure whose data/size fields are filled in
  *
- * Return: 0 on success, 1 if the file cannot be opened/read,
- * 2 if the file is not a recognizable ELF object
+ * Return: 0 on success, 1 if the file cannot be opened/read
  */
-int elf_load(const char *filename, elf_t *elf)
+static int read_file(const char *filename, elf_t *elf)
 {
 	struct stat st;
 	int fd;
 	ssize_t n;
-
-	memset(elf, 0, sizeof(*elf));
 
 	fd = open(filename, O_RDONLY);
 	if (fd < 0 || fstat(fd, &st) != 0)
@@ -142,6 +146,23 @@ int elf_load(const char *filename, elf_t *elf)
 		elf->data = NULL;
 		return (1);
 	}
+	return (0);
+}
+
+/**
+ * elf_load - read a file from disk and parse it as an ELF object
+ * @filename: path of the file to load
+ * @elf: structure to fill in
+ *
+ * Return: 0 on success, 1 if the file cannot be opened/read,
+ * 2 if the file is not a recognizable ELF object
+ */
+int elf_load(const char *filename, elf_t *elf)
+{
+	memset(elf, 0, sizeof(*elf));
+
+	if (read_file(filename, elf))
+		return (1);
 
 	if (elf->size < 20 || elf->data[0] != 0x7f || elf->data[1] != 'E' ||
 	    elf->data[2] != 'L' || elf->data[3] != 'F')
