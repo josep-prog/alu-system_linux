@@ -16,6 +16,9 @@
 
 #define SHT_NOBITS_V 8
 #define SHT_DYNSYM_V 11
+#define SHT_INIT_ARRAY_V 14
+#define SHT_FINI_ARRAY_V 15
+#define SHT_PREINIT_ARRAY_V 16
 #define SHT_GNU_VERSYM_V 0x6fffffff
 #define SHT_GNU_VERNEED_V 0x6ffffffe
 #define SHT_GNU_VERDEF_V 0x6ffffffd

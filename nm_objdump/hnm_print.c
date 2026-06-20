@@ -30,7 +30,8 @@ char symbol_letter(const elf_t *elf, const sym_t *sym)
 		return (type == STT_OBJECT_V ? 'V' : 'W');
 	else if (sh->sh_type == SHT_NOBITS_V)
 		base = 'b';
-	else if (sh->sh_flags & SHF_EXECINSTR_V)
+	else if (sh->sh_flags & SHF_EXECINSTR_V || sh->sh_type == SHT_INIT_ARRAY_V ||
+		 sh->sh_type == SHT_FINI_ARRAY_V || sh->sh_type == SHT_PREINIT_ARRAY_V)
 		base = 't';
 	else if (!(sh->sh_flags & SHF_ALLOC_V))
 		base = 'n';

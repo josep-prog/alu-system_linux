@@ -1,5 +1,7 @@
 #include "hnm.h"
 
+static const char *prog_name = "hnm";
+
 /**
  * print_symbols - print every relevant symbol of a parsed ELF's symtab
  * @elf: parsed ELF file
@@ -46,13 +48,13 @@ int process_file(const char *filename, int show_header)
 
 	if (rc == 1)
 	{
-		fprintf(stderr, "hnm: '%s': No such file\n", filename);
+		fprintf(stderr, "%s: '%s': No such file\n", prog_name, filename);
 		return (1);
 	}
 	if (rc == 2)
 	{
-		fprintf(stderr, "hnm: %s: file format not recognized\n",
-			filename);
+		fprintf(stderr, "%s: %s: file format not recognized\n",
+			prog_name, filename);
 		return (1);
 	}
 
@@ -62,7 +64,7 @@ int process_file(const char *filename, int show_header)
 	symtab_idx = choose_symtab_section(&elf);
 	if (symtab_idx == -1)
 	{
-		fprintf(stderr, "hnm: %s: no symbols\n", filename);
+		fprintf(stderr, "%s: %s: no symbols\n", prog_name, filename);
 		elf_free(&elf);
 		return (1);
 	}
@@ -83,6 +85,7 @@ int main(int argc, char **argv)
 {
 	int status = 0, i;
 
+	prog_name = argv[0];
 	if (argc == 1)
 		return (process_file("a.out", 0));
 
