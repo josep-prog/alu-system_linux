@@ -38,8 +38,21 @@
 
 #define VERSYM_VERSION_MASK 0x7fff
 
-/* Generic in-memory view of one ELF section header, widened to 64 bits */
-typedef struct
+/**
+ * struct sect_t - generic in-memory view of one ELF section header,
+ * widened to 64 bits
+ * @sh_name: byte offset of the section name in .shstrtab
+ * @sh_type: section type
+ * @sh_flags: section attribute flags
+ * @sh_addr: virtual address of the section in memory
+ * @sh_offset: byte offset of the section in the file
+ * @sh_size: size of the section in bytes
+ * @sh_link: section header table index link
+ * @sh_info: extra section information
+ * @sh_addralign: required address alignment
+ * @sh_entsize: size of each entry, for sections holding fixed-size entries
+ */
+typedef struct sect_t
 {
 	uint32_t sh_name;
 	uint32_t sh_type;
@@ -53,8 +66,17 @@ typedef struct
 	uint64_t sh_entsize;
 } sect_t;
 
-/* Generic in-memory view of one ELF symbol table entry, widened to 64 bits */
-typedef struct
+/**
+ * struct sym_t - generic in-memory view of one ELF symbol table entry,
+ * widened to 64 bits
+ * @st_name: byte offset of the symbol name in its string table
+ * @st_info: symbol type and binding
+ * @st_other: symbol visibility
+ * @st_shndx: index of the section the symbol is defined in
+ * @st_value: value or address of the symbol
+ * @st_size: size of the symbol's associated data
+ */
+typedef struct sym_t
 {
 	uint32_t st_name;
 	uint8_t st_info;
@@ -64,8 +86,28 @@ typedef struct
 	uint64_t st_size;
 } sym_t;
 
-/* Parsed ELF identity and section/symbol tables shared by hnm and hobjdump */
-typedef struct
+/**
+ * struct elf_t - parsed ELF identity and section/symbol tables shared by
+ * hnm and hobjdump
+ * @data: raw file content loaded in memory
+ * @size: size of @data in bytes
+ * @is64: 1 if this is a 64-bit ELF file, 0 if 32-bit
+ * @is_big_endian: 1 if the file is big-endian, 0 if little-endian
+ * @e_type: object file type
+ * @e_machine: target architecture
+ * @e_version: object file version
+ * @e_entry: virtual address of the entry point
+ * @e_phoff: byte offset of the program header table
+ * @e_shoff: byte offset of the section header table
+ * @e_flags: processor-specific flags
+ * @e_phentsize: size of one program header table entry
+ * @e_phnum: number of program header table entries
+ * @e_shentsize: size of one section header table entry
+ * @e_shnum: number of section header table entries
+ * @e_shstrndx: section header table index of the section name string table
+ * @sections: parsed array of @e_shnum generic section headers
+ */
+typedef struct elf_t
 {
 	unsigned char *data;
 	size_t size;

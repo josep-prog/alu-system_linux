@@ -83,7 +83,11 @@ static uint32_t compute_flags(const elf_t *elf)
  */
 static void print_flag_names(uint32_t flags)
 {
-	static const struct { uint32_t bit; const char *name; } table[] = {
+	static const struct flag_name
+	{
+		uint32_t bit;
+		const char *name;
+	} table[] = {
 		{0x00000001, "HAS_RELOC"}, {0x00000002, "EXEC_P"},
 		{0x00000010, "HAS_SYMS"}, {0x00000040, "DYNAMIC"},
 		{0x00000100, "D_PAGED"},

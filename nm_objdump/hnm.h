@@ -7,8 +7,12 @@
 #define ST_BIND(info) ((info) >> 4)
 #define ST_TYPE(info) ((info) & 0xf)
 
-/* One resolved "name needs version X" entry taken from .dynsym */
-typedef struct
+/**
+ * struct ver_entry_t - one resolved "name needs version X" entry
+ * @name: symbol name, as found in .dynsym
+ * @version: version string the symbol is bound to
+ */
+typedef struct ver_entry_t
 {
 	const char *name;
 	const char *version;

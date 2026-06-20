@@ -23,8 +23,8 @@ static int width_for(const sect_t *s)
  * @bytes: pointer to the row's bytes within the file buffer
  * @n: number of valid bytes in this row (1-16)
  */
-static void print_hex_line(uint64_t addr, int width, const unsigned char *bytes,
-			    int n)
+static void print_hex_line(uint64_t addr, int width,
+			    const unsigned char *bytes, int n)
 {
 	int i;
 
