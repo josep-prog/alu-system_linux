@@ -119,6 +119,6 @@ void print_header(const elf_t *elf, const char *filename)
 	printf("\n%s:     file format %s\n", filename, fmt);
 	printf("architecture: %s, flags 0x%08x:\n", arch, flags);
 	print_flag_names(flags);
-	printf("start address 0x%0*llx\n\n",
-	       elf->is64 ? 16 : 8, (unsigned long long)elf->e_entry);
+	printf("start address 0x%0*" PRIx64 "\n\n",
+	       elf->is64 ? 16 : 8, elf->e_entry);
 }

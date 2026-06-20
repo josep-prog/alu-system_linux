@@ -3,6 +3,7 @@
 
 #include "elf_common.h"
 #include <ctype.h>
+#include <inttypes.h>
 
 #define ET_REL_V 1
 #define ET_EXEC_V 2

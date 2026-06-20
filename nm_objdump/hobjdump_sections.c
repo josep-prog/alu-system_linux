@@ -28,7 +28,7 @@ static void print_hex_line(uint64_t addr, int width,
 {
 	int i;
 
-	printf(" %0*llx ", width, (unsigned long long)addr);
+	printf(" %0*" PRIx64 " ", width, addr);
 	for (i = 0; i < 16; i++)
 	{
 		if (i < n)
