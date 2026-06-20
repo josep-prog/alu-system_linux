@@ -1,5 +1,7 @@
 #include "hobjdump.h"
 
+static const char *prog_name = "hobjdump";
+
 /**
  * process_file - load one object file and dump it like `objdump -sf`
  * @filename: path of the file to process
@@ -11,13 +13,13 @@ void process_file(const char *filename)
 
 	if (rc == 1)
 	{
-		fprintf(stderr, "hobjdump: '%s': No such file\n", filename);
+		fprintf(stderr, "%s: '%s': No such file\n", prog_name, filename);
 		return;
 	}
 	if (rc == 2)
 	{
-		fprintf(stderr, "hobjdump: %s: file format not recognized\n",
-			filename);
+		fprintf(stderr, "%s: %s: file format not recognized\n",
+			prog_name, filename);
 		return;
 	}
 
@@ -37,6 +39,7 @@ int main(int argc, char **argv)
 {
 	int i;
 
+	prog_name = argv[0];
 	for (i = 1; i < argc; i++)
 		process_file(argv[i]);
 
