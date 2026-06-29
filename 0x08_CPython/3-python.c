@@ -1,5 +1,6 @@
 #include <Python.h>
 #include <stdio.h>
+#include <string.h>
 
 void print_python_bytes(PyObject *p)
 {
@@ -33,7 +34,8 @@ void print_python_bytes(PyObject *p)
 
 void print_python_float(PyObject *p)
 {
-	PyObject *repr;
+	PyFloatObject *f;
+	char buf[64];
 
 	printf("[.] float object info\n");
 	if (!PyFloat_Check(p))
@@ -43,9 +45,11 @@ void print_python_float(PyObject *p)
 		return;
 	}
 
-	repr = PyObject_Repr(p);
-	printf("  value: %s\n", (char *)((PyASCIIObject *)repr + 1));
-	Py_DECREF(repr);
+	f = (PyFloatObject *)p;
+	snprintf(buf, sizeof(buf), "%.16g", f->ob_fval);
+	if (strchr(buf, '.') == NULL && strchr(buf, 'e') == NULL)
+		strcat(buf, ".0");
+	printf("  value: %s\n", buf);
 	fflush(stdout);
 }
 
