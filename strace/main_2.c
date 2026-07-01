@@ -24,19 +24,20 @@ int main(int argc, char **argv)
 
 	/* the stop right after execve doubles as its own syscall-stop */
 	ptrace(PTRACE_GETREGS, child, NULL, &regs);
-	printf("%s = %#llx\n", get_syscall_name(regs.orig_rax), regs.rax);
+	printf("%s = %#lx\n", get_syscall_name((long)regs.orig_rax),
+	       (long)regs.rax);
 
 	while (wait_for_syscall(child, &status))
 	{
 		ptrace(PTRACE_GETREGS, child, NULL, &regs);
 		if (entering)
 		{
-			printf("%s", get_syscall_name(regs.orig_rax));
+			printf("%s", get_syscall_name((long)regs.orig_rax));
 			pending = 1;
 		}
 		else
 		{
-			printf(" = %#llx\n", regs.rax);
+			printf(" = %#lx\n", (long)regs.rax);
 			pending = 0;
 		}
 		entering = !entering;

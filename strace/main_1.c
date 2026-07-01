@@ -23,14 +23,14 @@ int main(int argc, char **argv)
 
 	/* the stop right after execve doubles as its own syscall-stop */
 	ptrace(PTRACE_GETREGS, child, NULL, &regs);
-	printf("%s\n", get_syscall_name(regs.orig_rax));
+	printf("%s\n", get_syscall_name((long)regs.orig_rax));
 
 	while (wait_for_syscall(child, &status))
 	{
 		if (entering)
 		{
 			ptrace(PTRACE_GETREGS, child, NULL, &regs);
-			printf("%s\n", get_syscall_name(regs.orig_rax));
+			printf("%s\n", get_syscall_name((long)regs.orig_rax));
 		}
 		entering = !entering;
 	}
