@@ -71,7 +71,7 @@ static const syscall_args_t syscall_args[] = {
 	{61, 4, 0},  /* wait4 */
 	{62, 2, 0},  /* kill */
 	{63, 1, 0},  /* uname */
-	{72, 2, 0},  /* fcntl(fd, cmd) */
+	{72, 2, 1},  /* fcntl(fd, cmd, ...arg) */
 	{78, 3, 0},  /* getdents */
 	{79, 2, 0},  /* getcwd */
 	{80, 1, 0},  /* chdir */
@@ -109,12 +109,14 @@ static const syscall_args_t syscall_args[] = {
 	{231, 1, 0}, /* exit_group(status) */
 	{257, 3, 0}, /* openat(dirfd, path, flags) */
 	{262, 4, 0}, /* newfstatat */
+	{269, 4, 0}, /* faccessat(dirfd, path, mode, flags) */
 	{270, 3, 0}, /* pselect6 */
 	{273, 2, 0}, /* set_robust_list */
 	{280, 4, 0}, /* utimensat */
 	{291, 5, 0}, /* epoll_create1 */
 	{293, 2, 0}, /* pipe2 */
 	{318, 3, 0}, /* getrandom */
+	{439, 4, 0}, /* faccessat2(dirfd, path, mode, flags) */
 	{-1, 0, 0}
 };
 
