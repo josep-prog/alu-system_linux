@@ -24,19 +24,25 @@ int main(int argc, char **argv)
 
 	child = start_child(argv + 1);
 
-	/* the stop right after execve doubles as its own syscall-stop */
+	/*
+	 * The newline for a name is only printed once the next name is
+	 * about to appear, instead of right away: this way, if the syscall
+	 * itself writes to stdout (e.g. write(2)), its raw bytes land right
+	 * after the name instead of on a line of their own.
+	 */
 	ptrace(PTRACE_GETREGS, child, NULL, &regs);
-	printf("%s\n", get_syscall_name((long)regs.orig_rax));
+	printf("%s", get_syscall_name((long)regs.orig_rax));
 
 	while (wait_for_syscall(child, &status))
 	{
 		if (entering)
 		{
 			ptrace(PTRACE_GETREGS, child, NULL, &regs);
-			printf("%s\n", get_syscall_name((long)regs.orig_rax));
+			printf("\n%s", get_syscall_name((long)regs.orig_rax));
 		}
 		entering = !entering;
 	}
+	printf("\n");
 
 	return (0);
 }
