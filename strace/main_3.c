@@ -1,7 +1,10 @@
 #include "strace.h"
 
 /**
- * print_args - prints a syscall's arguments in hexadecimal
+ * print_args - prints a syscall's arguments in hexadecimal, without the
+ * closing parenthesis: it is printed later, alongside the return value,
+ * so that any raw bytes the syscall itself writes to stdout (e.g.
+ * write(2)) land between the last argument and the closing ")"
  * @regs: the traced process' registers at syscall-entry
  * @nargs: number of arguments to print (from the syscall table)
  * @variadic: 1 if a trailing "..." must be appended
@@ -23,7 +26,6 @@ static void print_args(struct user_regs_struct regs, int nargs, int variadic)
 		printf("%s%#lx", i > 0 ? ", " : "", args[i]);
 	if (variadic)
 		printf("%s...", nargs > 0 ? ", " : "");
-	printf(")");
 }
 
 /**
@@ -56,7 +58,7 @@ int main(int argc, char **argv)
 	get_syscall_args((long)regs.orig_rax, &nargs, &variadic);
 	printf("%s", get_syscall_name((long)regs.orig_rax));
 	print_args(regs, nargs, variadic);
-	printf(" = %#lx\n", (long)regs.rax);
+	printf(") = %#lx\n", (long)regs.rax);
 
 	while (wait_for_syscall(child, &status))
 	{
@@ -70,13 +72,13 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			printf(" = %#lx\n", (long)regs.rax);
+			printf(") = %#lx\n", (long)regs.rax);
 			pending = 0;
 		}
 		entering = !entering;
 	}
 	if (pending)
-		printf(" = ?\n");
+		printf(") = ?\n");
 
 	return (0);
 }
