@@ -19,6 +19,9 @@ int main(int argc, char **argv)
 		return (1);
 	}
 
+	/* keep our output in sync with the tracee's own raw writes to fd 1 */
+	setbuf(stdout, NULL);
+
 	child = start_child(argv + 1);
 
 	/* the stop right after execve doubles as its own syscall-stop */
