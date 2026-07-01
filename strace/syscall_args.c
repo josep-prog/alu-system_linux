@@ -2,14 +2,14 @@
 
 /*
  * Argument counts below come from the x86_64 syscall prototypes (see
- * `man 2 <syscall>`). Syscalls whose trailing argument's type depends on
- * an earlier argument (ioctl, fcntl, open, ...) are marked variadic: the
- * fixed arguments are printed in hexadecimal, the rest as "...".
+ * `man 2 <syscall>`). Only ioctl's trailing argument, whose type depends
+ * on the request code, is marked variadic (printed as "..."); every
+ * other syscall prints a fixed number of hexadecimal arguments.
  */
 static const syscall_args_t syscall_args[] = {
 	{0, 3, 0},   /* read(fd, buf, count) */
 	{1, 3, 0},   /* write(fd, buf, count) */
-	{2, 2, 1},   /* open(path, flags, ...mode) */
+	{2, 2, 0},   /* open(path, flags) */
 	{3, 1, 0},   /* close(fd) */
 	{4, 2, 0},   /* stat(path, buf) */
 	{5, 2, 0},   /* fstat(fd, buf) */
@@ -20,8 +20,8 @@ static const syscall_args_t syscall_args[] = {
 	{10, 3, 0},  /* mprotect(addr, len, prot) */
 	{11, 2, 0},  /* munmap(addr, len) */
 	{12, 1, 0},  /* brk(addr) */
-	{13, 4, 0},  /* rt_sigaction */
-	{14, 4, 0},  /* rt_sigprocmask */
+	{13, 3, 0},  /* rt_sigaction(sig, act, oldact) */
+	{14, 3, 0},  /* rt_sigprocmask(how, set, oldset) */
 	{15, 0, 0},  /* rt_sigreturn */
 	{16, 2, 1},  /* ioctl(fd, cmd, ...arg) */
 	{17, 4, 0},  /* pread64 */
@@ -71,7 +71,7 @@ static const syscall_args_t syscall_args[] = {
 	{61, 4, 0},  /* wait4 */
 	{62, 2, 0},  /* kill */
 	{63, 1, 0},  /* uname */
-	{72, 2, 1},  /* fcntl(fd, cmd, ...arg) */
+	{72, 2, 0},  /* fcntl(fd, cmd) */
 	{78, 3, 0},  /* getdents */
 	{79, 2, 0},  /* getcwd */
 	{80, 1, 0},  /* chdir */
@@ -99,7 +99,7 @@ static const syscall_args_t syscall_args[] = {
 	{107, 0, 0}, /* geteuid */
 	{108, 0, 0}, /* getegid */
 	{110, 0, 0}, /* getppid */
-	{157, 5, 1}, /* prctl(option, ...) */
+	{157, 5, 0}, /* prctl(option, arg2, arg3, arg4, arg5) */
 	{158, 2, 0}, /* arch_prctl(code, addr) */
 	{186, 0, 0}, /* gettid */
 	{202, 6, 0}, /* futex */
@@ -107,7 +107,7 @@ static const syscall_args_t syscall_args[] = {
 	{218, 1, 0}, /* set_tid_address */
 	{228, 2, 0}, /* clock_gettime */
 	{231, 1, 0}, /* exit_group(status) */
-	{257, 4, 1}, /* openat(dirfd, path, flags, ...mode) */
+	{257, 3, 0}, /* openat(dirfd, path, flags) */
 	{262, 4, 0}, /* newfstatat */
 	{270, 3, 0}, /* pselect6 */
 	{273, 2, 0}, /* set_robust_list */
