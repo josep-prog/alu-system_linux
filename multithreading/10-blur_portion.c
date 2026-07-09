@@ -16,8 +16,8 @@ static uint8_t clamp_channel(float v)
 }
 
 /**
- * compute_pixel - Compute the blurred value of a single pixel, leaving it
- *                 unchanged if the kernel does not fully fit in the image
+ * compute_pixel - Compute the blurred value of a single pixel, skipping
+ *                 kernel taps that fall outside the image and renormalizing
  * @img: Source image
  * @kernel: Convolution kernel to apply
  * @px: X coordinate of the pixel to compute
@@ -29,38 +29,36 @@ static pixel_t compute_pixel(img_t const *img, kernel_t const *kernel,
 	size_t px, size_t py)
 {
 	float sum_r, sum_g, sum_b, sum_k, weight;
-	long int half, extra, i, j;
-	pixel_t p;
-	size_t x, y;
-
-	half = (long int)kernel->size / 2;
-	extra = (long int)kernel->size - 1 - half;
-	if ((long int)px < half || (long int)py < half ||
-		px + (size_t)extra >= img->w || py + (size_t)extra >= img->h)
-		return (img->pixels[(py * img->w) + px]);
+	long int half, i, j, x, y;
+	pixel_t p, res;
 
 	sum_r = 0;
 	sum_g = 0;
 	sum_b = 0;
 	sum_k = 0;
+	half = (long int)kernel->size / 2;
+
 	for (i = 0; i < (long int)kernel->size; i++)
 	{
 		for (j = 0; j < (long int)kernel->size; j++)
 		{
+			x = (long int)px + j - half;
+			y = (long int)py + i - half;
+			if (x < 0 || y < 0 || x >= (long int)img->w ||
+				y >= (long int)img->h)
+				continue;
 			weight = kernel->matrix[i][j];
-			x = (size_t)((long int)px + j - half);
-			y = (size_t)((long int)py + i - half);
-			p = img->pixels[(y * img->w) + x];
+			p = img->pixels[(y * (long int)img->w) + x];
 			sum_r += p.r * weight;
 			sum_g += p.g * weight;
 			sum_b += p.b * weight;
 			sum_k += weight;
 		}
 	}
-	p.r = clamp_channel(sum_r / sum_k);
-	p.g = clamp_channel(sum_g / sum_k);
-	p.b = clamp_channel(sum_b / sum_k);
-	return (p);
+	res.r = clamp_channel(sum_r / sum_k);
+	res.g = clamp_channel(sum_g / sum_k);
+	res.b = clamp_channel(sum_b / sum_k);
+	return (res);
 }
 
 /**
