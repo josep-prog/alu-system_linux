@@ -24,7 +24,7 @@ void send_response(int client_fd, int code, char const *reason,
 	{
 		header_len += snprintf(header + header_len,
 			sizeof(header) - (size_t)header_len,
-			"Content-Length: %zu\r\n", body_length);
+			"Content-Length: %lu\r\n", (unsigned long)body_length);
 		header_len += snprintf(header + header_len,
 			sizeof(header) - (size_t)header_len,
 			"Content-Type: %s\r\n", content_type);
