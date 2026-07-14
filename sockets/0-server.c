@@ -8,12 +8,12 @@
 #define PORT 12345
 
 /**
- * main - Open an IPv4/TCP socket, bind it to port 12345 on any
- *        address, listen for incoming connections, and hang forever
+ * create_server_socket - Open an IPv4/TCP socket, bind it to
+ *                        port 12345 on any address, and listen
  *
- * Return: EXIT_SUCCESS on success, EXIT_FAILURE on error
+ * Return: The listening socket's file descriptor
  */
-int main(void)
+static int create_server_socket(void)
 {
 	int server_fd, opt;
 	struct sockaddr_in addr;
@@ -49,6 +49,19 @@ int main(void)
 		perror("listen");
 		exit(EXIT_FAILURE);
 	}
+
+	return (server_fd);
+}
+
+/**
+ * main - Open an IPv4/TCP socket, bind it to port 12345 on any
+ *        address, listen for incoming connections, and hang forever
+ *
+ * Return: EXIT_SUCCESS on success, EXIT_FAILURE on error
+ */
+int main(void)
+{
+	create_server_socket();
 
 	printf("Server listening on port %d\n", PORT);
 	fflush(stdout);

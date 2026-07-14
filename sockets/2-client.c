@@ -6,30 +6,24 @@
 #include <sys/socket.h>
 
 /**
- * main - Connect to a listening TCP server
- * @argc: Argument count
- * @argv: Argument vector: program name, host, port
+ * connect_to_server - Resolve a host/port and connect to it over TCP
+ * @host: Host to connect to
+ * @port: Port to connect to
  *
- * Return: EXIT_SUCCESS on success, EXIT_FAILURE on error
+ * Return: The connected socket's file descriptor
  */
-int main(int argc, char *argv[])
+static int connect_to_server(char const *host, char const *port)
 {
 	int sock_fd;
 	struct addrinfo hints, *res;
-
-	if (argc < 3)
-	{
-		fprintf(stderr, "Usage: %s <host> <port>\n", argv[0]);
-		exit(EXIT_FAILURE);
-	}
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 
-	if (getaddrinfo(argv[1], argv[2], &hints, &res) != 0)
+	if (getaddrinfo(host, port, &hints, &res) != 0)
 	{
-		fprintf(stderr, "Could not resolve host: %s\n", argv[1]);
+		fprintf(stderr, "Could not resolve host: %s\n", host);
 		exit(EXIT_FAILURE);
 	}
 
@@ -49,6 +43,28 @@ int main(int argc, char *argv[])
 	}
 
 	freeaddrinfo(res);
+
+	return (sock_fd);
+}
+
+/**
+ * main - Connect to a listening TCP server
+ * @argc: Argument count
+ * @argv: Argument vector: program name, host, port
+ *
+ * Return: EXIT_SUCCESS on success, EXIT_FAILURE on error
+ */
+int main(int argc, char *argv[])
+{
+	int sock_fd;
+
+	if (argc < 3)
+	{
+		fprintf(stderr, "Usage: %s <host> <port>\n", argv[0]);
+		exit(EXIT_FAILURE);
+	}
+
+	sock_fd = connect_to_server(argv[1], argv[2]);
 
 	printf("Connected to %s:%s\n", argv[1], argv[2]);
 

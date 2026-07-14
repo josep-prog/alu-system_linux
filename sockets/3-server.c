@@ -9,20 +9,15 @@
 #define BUF_SIZE 4096
 
 /**
- * main - Open an IPv4/TCP socket, bind it to port 12345 on any
- *        address, accept a single incoming connection, print the
- *        connected client's IP address, wait for a message from
- *        that client, print it, then close the connection
+ * create_server_socket - Open an IPv4/TCP socket, bind it to
+ *                        port 12345 on any address, and listen
  *
- * Return: EXIT_SUCCESS on success, EXIT_FAILURE on error
+ * Return: The listening socket's file descriptor
  */
-int main(void)
+static int create_server_socket(void)
 {
-	int server_fd, client_fd, opt;
-	struct sockaddr_in addr, client_addr;
-	socklen_t client_len;
-	char buffer[BUF_SIZE];
-	ssize_t n;
+	int server_fd, opt;
+	struct sockaddr_in addr;
 
 	server_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (server_fd == -1)
@@ -55,6 +50,27 @@ int main(void)
 		perror("listen");
 		exit(EXIT_FAILURE);
 	}
+
+	return (server_fd);
+}
+
+/**
+ * main - Open an IPv4/TCP socket, bind it to port 12345 on any
+ *        address, accept a single incoming connection, print the
+ *        connected client's IP address, wait for a message from
+ *        that client, print it, then close the connection
+ *
+ * Return: EXIT_SUCCESS on success, EXIT_FAILURE on error
+ */
+int main(void)
+{
+	int server_fd, client_fd;
+	struct sockaddr_in client_addr;
+	socklen_t client_len;
+	char buffer[BUF_SIZE];
+	ssize_t n;
+
+	server_fd = create_server_socket();
 
 	printf("Server listening on port %d\n", PORT);
 	fflush(stdout);
